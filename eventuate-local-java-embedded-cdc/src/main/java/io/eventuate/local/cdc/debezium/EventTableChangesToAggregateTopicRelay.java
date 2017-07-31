@@ -1,11 +1,11 @@
 package io.eventuate.local.cdc.debezium;
 
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import io.debezium.config.Configuration;
 import io.debezium.embedded.EmbeddedEngine;
 import io.eventuate.javaclient.commonimpl.JSonMapper;
 import io.eventuate.local.common.AggregateTopicMapping;
-import io.eventuate.local.common.PublishedEvent;
 import io.eventuate.local.java.kafka.producer.EventuateKafkaProducer;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -254,14 +253,13 @@ public class EventTableChangesToAggregateTopicRelay {
       String entityType = after.getString("entity_type");
       String entityId = after.getString("entity_id");
       String triggeringEvent = after.getString("triggering_event");
-      Optional<String> metadata = Optional.ofNullable(after.getString("metadata"));
 
-      PublishedEvent pe = new PublishedEvent(eventId,
-              entityId, entityType,
-              eventData,
-              eventType,
-              null,
-              metadata);
+      PublishedEvent pe = new PublishedEvent();
+      pe.id = eventId;
+      pe.entityId = entityId;
+      pe.entityType = entityType;
+      pe.eventType = eventType;
+      pe.eventData = eventData;
 
 
       String aggregateTopic = AggregateTopicMapping.aggregateTypeToTopic(entityType);
@@ -300,4 +298,11 @@ public class EventTableChangesToAggregateTopicRelay {
 //    }
 //  }
 
+  public static class PublishedEvent{
+    public String id;
+    public String entityId;
+    public String entityType;
+    public String eventType;
+    public String eventData;
+  }
 }
